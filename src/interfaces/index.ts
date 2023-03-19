@@ -129,6 +129,8 @@ export interface Evaluate {
 }
 
 export interface ChatRoom {
+  userIds: any
+  id: any
   chatRoom: {
     id: number
   }
@@ -137,6 +139,8 @@ export interface ChatRoom {
 }
 
 export interface Message {
+  slice(arg0: number, arg1: number): unknown
+  length: number
   chatRoomId: number
   userId: number | undefined
   content: string
