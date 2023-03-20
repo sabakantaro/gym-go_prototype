@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Badge, Grid, Typography } from "@mui/material";
 import Avatar from "@mui/material/Avatar";
@@ -7,40 +7,49 @@ import ListItem from "@mui/material/ListItem";
 import Divider from "@mui/material/Divider";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
+import { collection, query, orderBy, onSnapshot, setDoc, serverTimestamp, where, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../../firebase'
 
 import {
   getNotifications,
   updateNotification,
 } from "../../../lib/api/gotoreAPI";
 import { Notification } from "interfaces";
+import { AuthContext } from "App";
 
 const NotificationsList = () => {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification>();
+  const { currentUser } = useContext(AuthContext)
   const navigate = useNavigate();
 
-  const handleGetNotifications = async () => {
-    try {
-      const res = await getNotifications();
-
-      if (res) {
-        setNotifications(res.data.notifications);
-      } else {
-        console.log("No notifications");
-      }
-    } catch (err) {
-      console.log(err);
-    }
-    setLoading(false);
-  };
+  const handleGetNotifications = useCallback(async () => {
+    return onSnapshot(
+      query(
+          collection(db, 'notifications'),
+          where("userId", "==", currentUser?.uid),
+          ),
+      (querySnapshot: any) => {
+          const notifications = querySnapshot.docs.map((x: any) => ({
+              ...x.data(),
+          }));
+          setNotifications(notifications);
+          setLoading(false);
+          console.log(notifications)
+        }
+    );
+  }, [currentUser?.uid]);
 
   useEffect(() => {
     handleGetNotifications();
-  }, []);
+  }, [handleGetNotifications]);
 
   const handleIsChecked = async (notification: Notification) => {
     try {
-      const res = await updateNotification(Number(notification.id));
+      // @ts-ignore
+      const res: any = await updateDoc(doc(db, "notifications", notification?.id), {
+        isChecked: true,
+      });
       if (res) {
         navigate(notification.linkUrl);
       }
