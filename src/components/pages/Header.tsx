@@ -93,18 +93,17 @@ const Header: React.FC = () => {
                 >
                   <SearchIcon />
                 </Button>
-                {/* <Button
+                <Button
                   color='inherit'
                   component={RouterLink}
                   to={"/notifications"}
                 >
                   <Badge
-                    badgeContent={currentUser?.myNotificationsCount}
                     color='primary'
                   >
                     <NotificationsIcon />
                   </Badge>
-                </Button> */}
+                </Button>
                 <Button
                   color='inherit'
                   component={RouterLink}
@@ -230,14 +229,13 @@ const Header: React.FC = () => {
                   }}
                 />
               </ListItemButton>
-              {/* <ListItemButton
+              <ListItemButton
                 color='inherit'
                 component={RouterLink}
                 to={"/notifications"}
                 onClick={() => setAnchorEl(null)}
               >
                 <Badge
-                  badgeContent={currentUser?.myNotificationsCount}
                   color='primary'
                 >
                   <NotificationsIcon />
@@ -250,7 +248,7 @@ const Header: React.FC = () => {
                     marginLeft: 2,
                   }}
                 />
-              </ListItemButton> */}
+              </ListItemButton>
               <ListItemButton
                 color='inherit'
                 component={RouterLink}
