@@ -4,12 +4,6 @@ import CardHeader from "@mui/material/CardHeader";
 import CardMedia from "@mui/material/CardMedia";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
-import {
-  getEvent,
-  createParticipate,
-  deleteComment,
-  createComment,
-} from "../../../lib/api/gotoreAPI";
 import AttendButton from "./AttendButton";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
@@ -24,7 +18,6 @@ import CardActions from "@mui/material/CardActions";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-// import EventsFavoritesButton from "./EventsFavoritesButton";
 import Stack from "@mui/material/Stack";
 import List from "@mui/material/List";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -85,11 +78,9 @@ const EventShow = () => {
       let data: any = []
       const querySnapshot: any = await db.collection('comments').where('eventId', '==', id).orderBy('createdAt','desc').get();
       querySnapshot.forEach((doc: any) => {
-        // setComments(res.data());
         data.push(doc.data())
       });
       setComments(data);
-      // console.log(query);
     } catch (err) {
       console.log(err);
     }
@@ -194,9 +185,6 @@ const EventShow = () => {
                   src={event?.imageUrl}
                   alt='event image'
                 />
-                {/* <EventsFavoritesButton
-                  event={event!}
-                /> */}
                 <div style={{ padding: 24 }}>
                   <CardHeader
                     sx={{ p: 0 }}
@@ -251,10 +239,10 @@ const EventShow = () => {
                     sx={{ pt: 0 }}
                     avatar={
                       <Avatar src={event?.user?.photoURL}>
-                        {event?.user?.name?.charAt(0)}
+                        {event?.user?.displayName?.charAt(0)}
                       </Avatar>
                     }
-                    title={`${event?.user?.name}`}
+                    title={`${event?.user?.displayName}`}
                   />
                   <Grid container sx={{ mt: 0.5 }}>
                     <Grid item xs={6} sx={{ backgroundColor: "lightgray" }}>
@@ -286,14 +274,6 @@ const EventShow = () => {
                         Category
                       </Typography>
                     </Grid>
-                    {/* <Grid item xs={6}>
-                      <Typography
-                        variant='body2'
-                        sx={{ fontSize: 14, fontWeight: "bold", ml: 1 }}
-                      >
-                        {event?.category?.name}
-                      </Typography>
-                    </Grid> */}
                   </Grid>
                   <Divider />
                   <Typography
@@ -337,7 +317,7 @@ const EventShow = () => {
                         <ListItemAvatar>
                           <Avatar
                             alt='User Name'
-                            src={comment?.user?.imageUrl}
+                            src={comment?.user?.photoURL}
                           />
                         </ListItemAvatar>
                         <ListItemText primary={`${comment.content}`} />
@@ -356,7 +336,6 @@ const EventShow = () => {
                           </Stack>
                         )}
                       </ListItem>
-
                       <Divider variant='inset' component='li' />
                     </>
                   ))}
@@ -408,7 +387,7 @@ const EventShow = () => {
               <ListItemText
                 primary={
                   event?.meetingDatetime &&
-                  moment(event?.meetingDatetime).format(
+                  moment(new Date(event?.meetingDatetime)).format(
                     "dddd, MMMM DD, YYYY HH:mm"
                   )
                 }
@@ -419,7 +398,6 @@ const EventShow = () => {
                 <LocationOnIcon />
               </ListItemIcon>
               <ListItemText
-                primary={`${event?.city?.name}`}
                 secondary={`${event?.address}`}
               />
             </ListItem>

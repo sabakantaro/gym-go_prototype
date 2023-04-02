@@ -13,7 +13,6 @@ import CardHeader from "@mui/material/CardHeader";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-// import EventsFavoritesButton from "./EventsFavoritesButton";
 import { AuthContext } from "App";
 import {Event} from "interfaces/index"
 
@@ -26,7 +25,6 @@ const EventBox: React.FC<Props> = ({ event }) => {
   return (
     <Grid item xs={12} sm={6} md={4}>
       <Link
-        // variant='body2'
         style={{ color: "black", textDecoration: "none" }}
         component={RouterLink}
         to={`/events/${event?.id}`}
@@ -44,9 +42,6 @@ const EventBox: React.FC<Props> = ({ event }) => {
             src={event?.imageUrl}
             alt='Event image'
           />
-          {/* {currentUser && (
-            <EventsFavoritesButton event={event} />
-          )} */}
           <CardHeader
             avatar={
               <Avatar
@@ -101,7 +96,8 @@ const EventBox: React.FC<Props> = ({ event }) => {
               </Grid>
               <Grid item xs={6}>
                 <Typography variant='body2'>
-                  {event?.meetingDatetime && moment(event?.meetingDatetime).format("YYYY-MM-DD")}
+                  {/* @ts-ignore */}
+                  {event?.meetingDatetime && moment(new Date(event?.meetingDatetime?.seconds * 1000)).format("YYYY-MM-DD")}
                 </Typography>
               </Grid>
             </Grid>

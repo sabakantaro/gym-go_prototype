@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext } from "react";
+import React, { useState, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
@@ -8,25 +8,14 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
 import IconButton from "@mui/material/IconButton";
 import CardMedia from "@mui/material/CardMedia";
 import Cancel from "@mui/icons-material/Cancel";
 import CameraAlt from "@mui/icons-material/CameraAlt";
-import {
-  createEvent,
-  getCategories,
-  getcities,
-} from "../../../lib/api/gotoreAPI";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import { AuthContext } from "App";
-import { Category, City, UpdateEventFormData } from "interfaces";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { storageRef, db } from '../../../firebase'
 
 const theme = createTheme();
@@ -37,44 +26,9 @@ const CreateEvent: React.FC = () => {
   const [body, setBody] = useState("");
   const [address, setAddress] = useState("");
   const [meetingDatetime, setMeetingDatetime] = useState<Date | null>(new Date());
-  const [categoryId, setCategoryId] = useState<number>(1);
-  const [cityId, setCityId] = useState<number | undefined>(0);
-  const [categoriesList, setcategoriesList] = useState<Category>();
-  const [citiesList, setcitiesList] = useState<City>();
-  const [image, setImage] = useState<string>("")
-  const [preview, setPreview] = useState<string>("")
+  const [image, setImage] = useState<string>("");
+  const [preview, setPreview] = useState<string>("");
   const navigate = useNavigate();
-
-  const handleGetCategories = useCallback(async () => {
-    try {
-      const res = await getCategories();
-      if (res.data) {
-        setcategoriesList(res.data.categories);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }, []);
-
-  const handleGetcities = useCallback(async () => {
-    try {
-      const res = await getcities();
-      if (res.data) {
-        setcitiesList(res.data.cities);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }, []);
-
-  useEffect(() => {
-    handleGetCategories();
-    handleGetcities();
-  }, [handleGetCategories, handleGetcities]);
-
-  const parseAsMoment = (dateTimeStr: string | undefined) => {
-    return moment.utc(dateTimeStr, "YYYY-MM-DDTHH:mm:00Z", "ja").utcOffset(9);
-  };
 
   const uploadImage = useCallback((e: any) => {
     const file = e.target.files[0];
@@ -85,18 +39,6 @@ const CreateEvent: React.FC = () => {
     const file = e.target.files[0];
     setPreview(window.URL.createObjectURL(file));
   }, []);
-
-  // const createFormData = useCallback(():UpdateEventFormData => {
-  //   const formData = new FormData();
-  //   formData.append("event[image]", image);
-  //   formData.append("event[title]", title);
-  //   formData.append("event[body]", body);
-  //   formData.append("event[address]", address);
-  //   formData.append("event[meeting_datetime]", String(meetingDatetime));
-  //   formData.append("event[category_id]", String(categoryId));
-  //   formData.append("event[user_id]", String(currentUser?.id));
-  //   return formData;
-  // }, [body, categoryId, currentUser, image, meetingDatetime, address, title]);
 
   const handleSubmit = useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -173,7 +115,6 @@ const CreateEvent: React.FC = () => {
               </Box>
             ) : (
               <UploadButton
-                // className='primary'
                 name='image'
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   uploadImage(e);
@@ -205,40 +146,6 @@ const CreateEvent: React.FC = () => {
               autoComplete='body'
               autoFocus
             />
-            {/* <FormControl fullWidth required margin='normal'>
-              <InputLabel id='demo-simple-select-label'>Category</InputLabel>
-              <Select
-                label='Catogory'
-                labelId='demo-simple-select-label'
-                id='demo-simple-select'
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value as number)}
-              >
-                {categoriesList &&
-                  categoriesList.map((category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth required margin='normal'>
-              <InputLabel id='demo-simple-select-label'>citie</InputLabel>
-              <Select
-                label='citie'
-                labelId='demo-simple-select-label'
-                id='demo-simple-select'
-                value={cityId}
-                onChange={(e) => setCityId(e.target.value as number)}
-              >
-                {citiesList &&
-                  citiesList.map((city) => (
-                    <MenuItem key={city.id} value={city.id}>
-                      {city.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl> */}
             <TextField
               value={address}
               onChange={(e) => setAddress(e.target.value)}
@@ -262,7 +169,7 @@ const CreateEvent: React.FC = () => {
                   name='datetime'
                   inputProps={{ readOnly: true }}
                 >
-                  {parseAsMoment(String(meetingDatetime)).format("YYYY/MM/DD")}
+                  {moment(String(meetingDatetime)).format("YYYY/MM/DD")}
                 </TextField>
               }
             />
@@ -273,7 +180,7 @@ const CreateEvent: React.FC = () => {
               sx={{ mt: 3, mb: 2 }}
               onClick={handleSubmit}
             >
-              Let's start Gathering!
+              send
             </Button>
           </Box>
         </Paper>
