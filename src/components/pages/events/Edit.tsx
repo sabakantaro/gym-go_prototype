@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useCallback, useContext, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
@@ -8,92 +8,50 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
 import IconButton from "@mui/material/IconButton";
 import CardMedia from "@mui/material/CardMedia";
 import Cancel from "@mui/icons-material/Cancel";
 import CameraAlt from "@mui/icons-material/CameraAlt";
-import {
-  editEvent,
-  getEvent,
-  getCategories,
-  getcities,
-} from "../../../lib/api/gotoreAPI";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
-import { Category, City } from "interfaces";
 import { AuthContext } from "App";
+import { storageRef, db } from '../../../firebase'
 
 const theme = createTheme();
 
-const EditEvent: React.FC = () => {
-  const { currentUser } = useContext(AuthContext)
+const Edit: React.FC = () => {
+  const { currentUser } = useContext(AuthContext);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [address, setAddress] = useState("");
-  const [meetingDatetime, setMeetingDatetime] = useState(new Date());
-  const [categoryId, setCategoryId] = useState(0);
-  const [cityId, setCityId] = useState(0);
-  const [categoriesList, setcategoriesList] = useState([]);
-  const [citiesList, setcitiesList] = useState([]);
-  const [image, setImage] = useState("");
-  const [preview, setPreview] = useState("");
+  const [meetingDatetime, setMeetingDatetime] = useState<Date | null>(new Date());
+  const [image, setImage] = useState<string>("");
+  const [preview, setPreview] = useState<string>("");
   const {id} = useParams();
   const navigate = useNavigate();
 
   const handleGetEvent = useCallback(async () => {
     try {
-      const res = await getEvent(id);
-      const event = res.data.event;
-      setTitle(event.title);
-      setBody(event.body);
-      setAddress(event.address);
-      setMeetingDatetime(
-        event.meetingDatetime !== null ? event.meetingDatetime : new Date()
-      );
-      setCategoryId(event.categoryId);
-      setImage(event.imageUrl);
-      setPreview(event.imageUrl);
+      // @ts-ignore
+      await db.collection('events').doc(id).get().then((doc) => {
+        // @ts-ignore
+        const data: any = doc.data()
+        setTitle(data.title);
+        setBody(data.body);
+        setAddress(data.address);
+        setImage(data.imageUrl);
+        console.log(data.imageUrl)
+        setPreview(data.imageUrl);
+      })
     } catch (err) {
       console.log(err);
     }
   }, [id]);
 
-  const handleGetCategories = useCallback(async () => {
-    try {
-      const res = await getCategories();
-      setcategoriesList(res.data.categories);
-    } catch (err) {
-      console.log(err);
-    }
-  }, []);
-
-  const handleGetcities = useCallback(async () => {
-    try {
-      const res = await getcities();
-      setcitiesList(res.data.cities);
-    } catch (err) {
-      console.log(err);
-    }
-  }, []);
-
   useEffect(() => {
-    handleGetEvent();
-    handleGetCategories();
-    handleGetcities();
-  }, [handleGetEvent, handleGetCategories, handleGetcities]);
-
-  useEffect(() => {
-    handleGetEvent();
-  }, [handleGetEvent]);
-
-  const parseAsMoment = (dateTimeStr: moment.MomentInput) => {
-    return moment.utc(dateTimeStr, "YYYY-MM-DDTHH:mm:00Z", "ja").utcOffset(9);
-  };
+    handleGetEvent()
+  }, [handleGetEvent])
 
   const uploadImage = useCallback((e: any) => {
     const file = e.target.files[0];
@@ -105,34 +63,36 @@ const EditEvent: React.FC = () => {
     setPreview(window.URL.createObjectURL(file));
   }, []);
 
-  const createFormData = useCallback(() => {
-    const formData = new FormData();
-    formData.append("event[image]", image);
-    formData.append("event[title]", title);
-    formData.append("event[body]", body);
-    formData.append("event[address]", address);
-    formData.append("event[meeting_datetime]", String(meetingDatetime));
-    formData.append("event[category_id]", String(categoryId));
-    formData.append("event[user_id]", String(currentUser?.id));
-
-    return formData;
-  }, [body, categoryId, currentUser, image, meetingDatetime, address, title]);
-
   const handleSubmit = useCallback(
-    async (e: { preventDefault: () => void; }) => {
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
-
-      const data = createFormData();
-      console.log(data);
-
-      await editEvent(Number(id), data).then(() => {
-        navigate("/");
-      });
+      const collection = db.collection('events')
+      // upload image
+      await storageRef.child(`images/events/${id}`).put(image as unknown as Blob)
+      // @ts-ignore
+      const imageUrl = await storageRef.child(`images/events/${id}`).getDownloadURL()
+      const data = {
+        title: title,
+        body: body,
+        address: address,
+        meetingDatetime: meetingDatetime as Date,
+        imageUrl: imageUrl,
+        user: {
+          uid: currentUser?.uid,
+          displayName: currentUser?.displayName,
+          photoURL: currentUser?.photoURL,
+      },
+        updated_at:new Date().getTime(),
+      }
+      collection.doc(id).update({
+        ...data,
+      })
+      navigate("/");
     },
-    [createFormData, navigate, id]
+    [id, image, title, body, address, meetingDatetime, currentUser, navigate]
   );
 
-  const UploadButton = useCallback((props: any) => {
+  const UploadButton = useCallback((props: { name: string | undefined; onChange: React.ChangeEventHandler<HTMLInputElement> | undefined; }) => {
     return (
       <label htmlFor={`upload-button-${props.name}`}>
         <input
@@ -176,7 +136,6 @@ const EditEvent: React.FC = () => {
               </Box>
             ) : (
               <UploadButton
-                className='primary'
                 name='image'
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   uploadImage(e);
@@ -194,6 +153,7 @@ const EditEvent: React.FC = () => {
               label='Title'
               name='title'
               autoComplete='title'
+              autoFocus
             />
             <TextField
               value={body}
@@ -205,41 +165,8 @@ const EditEvent: React.FC = () => {
               label='Body'
               name='body'
               autoComplete='body'
+              autoFocus
             />
-            <FormControl fullWidth required margin='normal'>
-              <InputLabel id='demo-simple-select-label'>Category</InputLabel>
-              <Select
-                label='Catogory'
-                labelId='demo-simple-select-label'
-                id='demo-simple-select'
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value as number)}
-              >
-                {categoriesList &&
-                  categoriesList.map((category: Category) => (
-                    <MenuItem key={category?.id} value={category?.id}>
-                      {category?.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth required margin='normal'>
-              <InputLabel id='demo-simple-select-label'>city</InputLabel>
-              <Select
-                label='city'
-                labelId='demo-simple-select-label'
-                id='demo-simple-select'
-                value={cityId}
-                onChange={(e) => setCityId(e.target.value as number)}
-              >
-                {citiesList &&
-                  citiesList.map((city: City) => (
-                    <MenuItem key={city?.id} value={city?.id}>
-                      {city?.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
             <TextField
               value={address}
               onChange={(e) => setAddress(e.target.value)}
@@ -249,11 +176,10 @@ const EditEvent: React.FC = () => {
               id='address'
               label='Address'
               name='address'
-              autoComplete='address'
             />
             <DatePicker
               selected={moment(meetingDatetime).toDate()}
-              onChange={(date) => setMeetingDatetime(date as Date)}
+              onChange={(date) => setMeetingDatetime(date)}
               customInput={
                 <TextField
                   margin='normal'
@@ -262,10 +188,9 @@ const EditEvent: React.FC = () => {
                   id='datetime'
                   label='Datetime'
                   name='datetime'
-                  autoComplete='datetime'
                   inputProps={{ readOnly: true }}
                 >
-                  {parseAsMoment(meetingDatetime).format("YYYY/MM/DD")}
+                  {moment(String(meetingDatetime)).format("YYYY/MM/DD")}
                 </TextField>
               }
             />
@@ -276,7 +201,7 @@ const EditEvent: React.FC = () => {
               sx={{ mt: 3, mb: 2 }}
               onClick={handleSubmit}
             >
-              Let's start Gathering!
+              send
             </Button>
           </Box>
         </Paper>
@@ -285,4 +210,4 @@ const EditEvent: React.FC = () => {
   );
 }
 
-export default EditEvent
+export default Edit;

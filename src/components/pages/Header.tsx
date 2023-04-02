@@ -72,7 +72,7 @@ const Header: React.FC = () => {
               variant='body2'
               style={{ color: "black", textDecoration: "none" }}
             >
-              Gotore
+              GymGo
             </Link>
           </Typography>
           <Box sx={{ flexGrow: 1 }} />

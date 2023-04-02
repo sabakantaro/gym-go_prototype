@@ -12,7 +12,6 @@ import {
   styled,
   alpha,
 } from "@mui/material/styles";
-import { getEvents, searchEvents } from "../../lib/api/gotoreAPI";
 import EventBox from "./events/EventBox";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
@@ -20,13 +19,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import { db } from '../../firebase'
-import { useCollectionData } from "react-firebase-hooks/firestore";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
 
 const theme = createTheme();
 
 const Home: React.FC = () => {
-  // @ts-ignore
   const [events, setEvents] = useState();
   const [keyword, setKeyword] = useState("");
   const [meetingDatetime, setMeetingDatetime] = useState<string | Date | null>();
@@ -40,10 +37,12 @@ const Home: React.FC = () => {
   const handleGetEvents = useCallback(async () => {
     try {
       const arrList: any = [];
-      getDocs(collection(db, "events")).then((snapShot) => {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      getDocs(query(collection(db, "events"),where("meetingDatetime", ">", startOfDay), orderBy('meetingDatetime'))).then((snapShot) => {
         snapShot.forEach((docs) => {
           const doc = docs.data();
-          arrList.push({  id: docs.id ,title: doc.title , imageUrl: doc.imageUrl, meetingDatetime: doc.meetingDatetime, body: doc.body, address: doc.address})
+          arrList.push({id: docs.id ,title: doc.title , imageUrl: doc.imageUrl, meetingDatetime: doc.meetingDatetime, body: doc.body, address: doc.address, user: doc.user})
         })
         setEvents(arrList);
       });
@@ -56,45 +55,57 @@ const Home: React.FC = () => {
     handleGetEvents();
   }, [handleGetEvents]);
 
-  const handleSearchEvents = useCallback(
-    async (newValue: string | Date | null ) => {
-      try {
-        const arrList: any = [];
-        // @ts-ignore
-        getDocs(collection(db, "events").startAt([keyword]).endAt([keyword + '\uf8ff'])).then((snapShot) => {
-          snapShot.forEach((docs) => {
-            const doc = docs.data();
-            // @ts-ignore
-            arrList.push({  id: docs.id ,title: doc.title , imageUrl: doc.imageUrl, meetingDatetime: doc.meetingDatetime, body: doc.body, address: doc.address})
-          })
-          setEvents(arrList);
-        });
-        if (newValue) {
-          const res = await searchEvents("", newValue);
-          // setEvents(res.data.events);
-        } else {
-          const res = await searchEvents(keyword, null);
-          // setEvents(res.data.events);
-          setMeetingDatetime(null);
-        }
-      } catch (err) {
-        console.log(err);
+
+
+const handleSearchEvents = useCallback(
+  async (newDate: string | Date | null ) => {
+    try {
+      const arrList: any = [];
+      let q;
+      if (newDate) {
+        const startDate = new Date(newDate);
+        const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000); // add 24 hours to the date
+        q = query(
+          collection(db, "events"),
+          where("meetingDatetime", ">=", startDate),
+          where("meetingDatetime", "<=", endDate)
+        );
+      } else {
+        q = query(
+          collection(db, "events"),
+          where("title", ">=", keyword),
+          where("title", "<=", keyword + '\uf8ff')
+        );
+        setMeetingDatetime(null);
       }
-    },
-    [keyword]
-  );
+      const snapShot = await getDocs(q);
+      snapShot.forEach((doc) => {
+        const data = doc.data();
+        arrList.push({
+          id: doc.id,
+          title: data.title,
+          imageUrl: data.imageUrl,
+          meetingDatetime: data.meetingDatetime,
+          body: data.body,
+          address: data.address,
+          user: data.user,
+        })
+      });
+      setEvents(arrList);
+    } catch (err) {
+      console.log(err);
+    }
+  },
+  [keyword]
+);
 
   const onChange = useCallback(
-    async (newValue: string | Date | null) => {
-      setMeetingDatetime(newValue);
-      handleSearchEvents(newValue);
+    async (newDate: string | Date | null) => {
+      setMeetingDatetime(newDate);
+      handleSearchEvents(newDate);
     },
     [handleSearchEvents]
   );
-
-  const parseAsMoment = (dateTimeStr: string | Date | null) => {
-    return moment.utc(dateTimeStr, "YYYY-MM-DDTHH:mm:00Z", "ja").utcOffset(9);
-  };
 
   const Search = styled("div")(({ theme }) => ({
     position: "relative",
@@ -192,7 +203,7 @@ const Home: React.FC = () => {
                   color='primary'
                   variant='contained'
                   onClick={() =>
-                    onChange(parseAsMoment(new Date()).format("YYYY/MM/DD"))
+                    onChange(moment(new Date()).format("YYYY/MM/DD"))
                   }
                   style={{ borderRadius: 32, fontSize: 11 }}
                 >
