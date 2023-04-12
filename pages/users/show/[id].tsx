@@ -12,7 +12,7 @@ import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import Edit from "@mui/icons-material/Edit";
 import Rating from "@mui/material/Rating";
-import EventBox from "../../events/EventBox";
+import EventBox from "../../../components/EventBox";
 import { AuthContext } from "../../_app";
 import { Event, User } from "../../../types/my-module";
 import { db } from '../../../firebase';
@@ -60,7 +60,7 @@ const UserShow: React.FC = () => {
             myPerticipationsEventIds.push(eventId);
           }
         })
-        if (myPerticipationsEventIds) {
+        if (myPerticipationsEventIds.length > 0) {
           const participateEvents: any = [];
           getDocs(query(collection(db, "events"), where("meetingDatetime", ">", startOfDay), where("id", "in", myPerticipationsEventIds), orderBy('meetingDatetime'))).then((snapShot) => {
             snapShot.forEach((docs) => {

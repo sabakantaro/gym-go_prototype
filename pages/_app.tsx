@@ -1,10 +1,12 @@
-import { AppProps, NextWebVitalsMetric } from "next/app";
-import type { NextPage, NextPageContext } from "next";
+import { AppProps } from "next/app";
+import ProgressBar from "@badrap/bar-of-progress";
+import type { NextPage } from "next";
 import React, { useState, useEffect, createContext } from "react";
-import { useRouter, NextRouter } from "next/router";
+import Router from "next/router";
 import Header from "../components/Header";
 import { auth } from "../firebase";
 import { User } from "../types/my-module";
+import "mapbox-gl/dist/mapbox-gl.css"
 
 export const AuthContext = createContext({} as {
   isSignedIn: boolean;
@@ -16,8 +18,6 @@ export const AuthContext = createContext({} as {
 const MyApp: NextPage<AppProps> = ({ Component, pageProps }: AppProps) => {
   const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<User | undefined>();
-  const router = useRouter();
-  console.log(router)
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser: any) => {
@@ -38,6 +38,17 @@ const MyApp: NextPage<AppProps> = ({ Component, pageProps }: AppProps) => {
   );
 };
 
+const progress = new ProgressBar({
+  size: 4,
+  color: '#FE595E',
+  className: 'z-50',
+  delay: 100,
+});
+
+Router.events.on('routeChangeStart', progress.start)
+Router.events.on('routeChangeComplete', progress.finish)
+Router.events.on('routeChangeError', progress.finish)
+
 MyApp.getInitialProps = async ({
   Component,
   ctx,
@@ -45,7 +56,7 @@ MyApp.getInitialProps = async ({
   const pageProps = Component.getInitialProps
     ? await Component.getInitialProps(ctx)
     : {};
-    // @ts-ignore
+  // @ts-ignore
   return { pageProps };
 };
 

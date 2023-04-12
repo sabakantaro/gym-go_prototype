@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import EventBox from "./EventBox";
+import EventBox from "../../components/EventBox";
 import { Event } from "../../types/my-module";
 import { db } from '../../firebase'
 
