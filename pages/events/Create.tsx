@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useContext } from "react";
+import React, { useState, useCallback, useContext, useEffect } from "react";
 import { useRouter } from 'next/router'
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
@@ -17,6 +17,11 @@ import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
 import { AuthContext } from "../_app";
 import { storageRef, db } from '../../firebase'
+import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
 
 const theme = createTheme();
 
@@ -28,7 +33,28 @@ const CreateEvent: React.FC = () => {
   const [meetingDatetime, setMeetingDatetime] = useState<Date | null>(new Date());
   const [image, setImage] = useState<string>("");
   const [preview, setPreview] = useState<string>("");
+  const [places, setPlaces] = useState([]);
+  const [selectedPlace, setSelectedPlace] = useState([]);
   const router = useRouter();
+
+  const handleGetPlaces = useCallback(async () => {
+    try {
+      const arrList: any = [];
+      getDocs(query(collection(db, "places"))).then((snapShot) => {
+        snapShot.forEach((docs) => {
+          const doc = docs.data();
+          arrList.push({id: docs.id ,name: doc.name , imageUrl: doc.imageUrl, long: doc.long, lat: doc.lat})
+        })
+        setPlaces(arrList);
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
+
+  useEffect(() => {
+    handleGetPlaces();
+  }, [handleGetPlaces]);
 
   const uploadImage = useCallback((e: any) => {
     const file = e.target.files[0];
@@ -89,6 +115,11 @@ const CreateEvent: React.FC = () => {
     );
   }, []);
 
+  const menuItems =
+    places.map((place: any, i) => (
+      <MenuItem key={i} value={place}>{place.name}</MenuItem>)
+    )
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -139,14 +170,16 @@ const CreateEvent: React.FC = () => {
               onChange={(e) => setBody(e.target.value)}
               margin='normal'
               required
+              multiline
+              rows={5}
               fullWidth
-              id='body'
-              label='Body'
-              name='body'
-              autoComplete='body'
+              id='Description'
+              label='Description'
+              name='description'
+              autoComplete='description'
               autoFocus
             />
-            <TextField
+            {/* <TextField
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               margin='normal'
@@ -155,8 +188,22 @@ const CreateEvent: React.FC = () => {
               id='address'
               label='Address'
               name='address'
-            />
+            /> */}
+            <FormControl fullWidth>
+              <InputLabel id="demo-simple-select-label">Gym*</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={selectedPlace}
+                label="Gym"
+                onChange={(e: any) => setSelectedPlace(e.target.value)}
+              >
+                {menuItems}
+              </Select>
+            </FormControl>
             <DatePicker
+                  dateFormat="MMMM d, yyyy h:mm aa"
+              showTimeSelect
               selected={moment(meetingDatetime).toDate()}
               onChange={(date) => setMeetingDatetime(date)}
               customInput={

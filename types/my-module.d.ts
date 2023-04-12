@@ -50,6 +50,7 @@ export interface UpdateUserFormData extends FormData {
 }
 
 export interface Event {
+  description: ReactNode
   map(arg0: (event: Event) => JSX.Element): import("react").ReactNode
   id?: string | undefined
   userId: number
