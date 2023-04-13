@@ -12,10 +12,10 @@ import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import Edit from "@mui/icons-material/Edit";
 import Rating from "@mui/material/Rating";
-import EventBox from "../../events/EventBox";
-import { AuthContext } from "../../_app";
-import { Event, User } from "../../../types/my-module";
-import { db } from '../../../firebase';
+import EventBox from "../events/EventBox";
+import { AuthContext } from "../_app";
+import { Event, User } from "../../types/my-module";
+import { db } from '../../firebase';
 import { collection, query, getDocs, where, orderBy } from 'firebase/firestore';
 
 const UserShow: React.FC = () => {
@@ -128,7 +128,7 @@ const UserShow: React.FC = () => {
                   action={
                     currentUser?.uid === id && (
                       <IconButton
-                        href={`/users/edit/${currentUser?.uid}`}
+                        href={`/users/${currentUser?.uid}/edit`}
                         component="a"
                         LinkComponent={Link}
                       >

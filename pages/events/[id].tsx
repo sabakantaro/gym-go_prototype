@@ -5,14 +5,14 @@ import CardHeader from "@mui/material/CardHeader";
 import CardMedia from "@mui/material/CardMedia";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
-import AttendButton from "../AttendButton";
+import AttendButton from "./AttendButton";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import moment from "moment";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import Summary from "../Summary";
+import Summary from "./Summary";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import CardActions from "@mui/material/CardActions";
@@ -34,9 +34,9 @@ import Slide from "@mui/material/Slide";
 import { TransitionProps } from '@mui/material/transitions';
 import ListItemIcon from "@mui/material/ListItemIcon";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { AuthContext } from "../../_app"
-import {Comment, Event} from '../../../types/my-module'
-import { db } from '../../../firebase'
+import { AuthContext } from "../_app"
+import {Comment, Event} from '../../types/my-module'
+import { db } from '../../firebase'
 import { serverTimestamp } from 'firebase/firestore'
 
 const Transition = React.forwardRef(function Transition(
@@ -193,7 +193,7 @@ const EventShow = () => {
                       currentUser &&
                       event?.user?.uid === currentUser?.uid && (
                         <IconButton
-                          href={`/events/edit/${event?.id}`}
+                          href={`/events/${event?.id}/edit`}
                           component="a"
                           LinkComponent={Link}
                         >

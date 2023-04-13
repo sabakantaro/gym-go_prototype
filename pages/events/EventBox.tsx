@@ -26,7 +26,7 @@ const EventBox: React.FC<Props> = ({ event }) => {
     <Grid item xs={12} sm={6} md={4}>
       <MUILink
         style={{ color: "black", textDecoration: "none" }}
-        href={`/events/show/${event?.id}`}
+        href={`/events/${event?.id}`}
       >
         <Card
           sx={{
@@ -51,7 +51,7 @@ const EventBox: React.FC<Props> = ({ event }) => {
             action={
               event?.user?.uid === currentUser?.uid && (
                 <IconButton
-                  href={`/events/edit/${event?.id}`}
+                  href={`/events/${event?.id}/edit`}
                   component="a"
                   LinkComponent={Link}
                 >
