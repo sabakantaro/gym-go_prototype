@@ -114,7 +114,7 @@ const Header: React.FC = () => {
                 </Button>
                 <Button
                   color='inherit'
-                  href={`/users/show/${currentUser?.uid}`}
+                  href={`/users/${currentUser?.uid}`}
                   component="a"
                   LinkComponent={Link}
                 >
@@ -271,7 +271,7 @@ const Header: React.FC = () => {
               </ListItemButton>
               <ListItemButton
                 color='inherit'
-                href={`/users/show/${currentUser?.uid}`}
+                href={`/users/${currentUser?.uid}`}
                 onClick={() => setAnchorEl(null)}
                 component="a"
                 LinkComponent={Link}
